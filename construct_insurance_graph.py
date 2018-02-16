@@ -15,17 +15,15 @@ import networkx as nx
 def get_data(year):
     if int(year) not in [2012, 2013, 2014, 2015, 2016]:
         raise Exception("No data for year {}".format(year))
-    else:
-        #find the right document number
-        num = int(year) % 2010
         
     #Get company data
-    df_co = pd.read_excel('P{}012000.xlsx'.format(num),sheetname='P{}012000'.format(num),header=None)
+    df_co = pd.read_excel('P{}000.xlsx'.format(year),sheetname='P{}000'.format(year),header=None)
     df_co.columns=['COCODE','SHORT_COMPANY_NAME','FULL_COMPANY_NAME','SURVIVING_COCODE','BUSINESS_TYPE','BUSINESS_TYPE_DESC','BUSINESS_SUB_TYPE','BUSINESS_SUB_TYPE_DESC','FILING_TYPE','FILING_TYPE_DESC','COMPANY_TYPE','COMPANY_TYPE_DESC','COMPANY_SUB_TYPE','COMPANY_SUB_TYPE_DESC','FEIN','STATE_DOMICILE','COMM_BUS_DATE','GROUP_CODE','GROUP_NAME','GROUP_CODE_PRIOR_PERIOD','GROUP_NAME_PRIOR_PERIOD','COMPANY_STATUS','COMPANY_STATUS_DESC','COUNTRY_NAME']
     df_co.index=df_co['COCODE']
     
     #Get reinsurance data
-    df = pd.read_excel('P{}012051.xlsx'.format(num),sheetname='P{}012051'.format(num),header=None)
+    df = pd.read_excel('P{}051.xlsx'.format(year),sheetname='P{}051'.format(year),header=None)
+	#drops an extra column that is not part of the dataset; comment this line out if this doesn't happen on your system
     df = df.drop(21,axis=1)
     df = df.drop(len(df)-1)
     df.columns=['COCODE','LINE_NO','FEIN','NAIC_COCODE','NAM_OF_REINSURER','DOMICIL_JURISDICT','REINS_CONTRACTS','REINS_PREM_CED','PD_LSSES','PD_LAE','KNOWN_CASE_LSS_RES','KNOWN_CASE_LAE_RES','IBNR_LSS_RES',',IBNR_LAE_RES','UNEARN_PREM','CNTG_COMM',',TOT_RCVRBL','CED_BAL_PAYABLE','OTH_AMTS','NET_RCVRBL','FUNDS_REINS_TREAT']
