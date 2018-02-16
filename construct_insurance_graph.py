@@ -23,9 +23,7 @@ def get_data(year):
     
     #Get reinsurance data
     df = pd.read_excel('P{}051.xlsx'.format(year),sheetname='P{}051'.format(year),header=None)
-	#drops an extra column that is not part of the dataset; comment this line out if this doesn't happen on your system
-    df = df.drop(21,axis=1)
-    df = df.drop(len(df)-1)
+    df = df[list(range(21))] #sometimes there is an extra column
     df.columns=['COCODE','LINE_NO','FEIN','NAIC_COCODE','NAM_OF_REINSURER','DOMICIL_JURISDICT','REINS_CONTRACTS','REINS_PREM_CED','PD_LSSES','PD_LAE','KNOWN_CASE_LSS_RES','KNOWN_CASE_LAE_RES','IBNR_LSS_RES',',IBNR_LAE_RES','UNEARN_PREM','CNTG_COMM',',TOT_RCVRBL','CED_BAL_PAYABLE','OTH_AMTS','NET_RCVRBL','FUNDS_REINS_TREAT']
     df = df.apply(pd.to_numeric, errors='ignore')
     df['REINS_PREM_CED'] = df['REINS_PREM_CED'].replace(' ', 0)
