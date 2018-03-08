@@ -9,8 +9,11 @@ Those data files are necessary to run the code
 """
 
 import pandas as pd
+import os
 import networkx as nx
 
+directory = "C:/Users/aak228/Box Sync/!-Research/2018/code/reinsurance_graph/"
+os.chdir(directory)
 
 def get_data(year):
     if int(year) not in [2012, 2013, 2014, 2015, 2016]:
@@ -18,7 +21,10 @@ def get_data(year):
         
     #Get company data
     df_co = pd.read_excel('P{}000.xlsx'.format(year),sheetname='P{}000'.format(year),header=None)
-    df_co.columns=['COCODE','SHORT_COMPANY_NAME','FULL_COMPANY_NAME','SURVIVING_COCODE','BUSINESS_TYPE','BUSINESS_TYPE_DESC','BUSINESS_SUB_TYPE','BUSINESS_SUB_TYPE_DESC','FILING_TYPE','FILING_TYPE_DESC','COMPANY_TYPE','COMPANY_TYPE_DESC','COMPANY_SUB_TYPE','COMPANY_SUB_TYPE_DESC','FEIN','STATE_DOMICILE','COMM_BUS_DATE','GROUP_CODE','GROUP_NAME','GROUP_CODE_PRIOR_PERIOD','GROUP_NAME_PRIOR_PERIOD','COMPANY_STATUS','COMPANY_STATUS_DESC','COUNTRY_NAME']
+    if year in [2012, 2013, 2014]:
+        df_co.columns=['COCODE','SHORT_COMPANY_NAME','FULL_COMPANY_NAME','SURVIVING_COCODE','BUSINESS_TYPE','BUSINESS_TYPE_DESC','BUSINESS_SUB_TYPE','BUSINESS_SUB_TYPE_DESC','FILING_TYPE','FILING_TYPE_DESC','COMPANY_TYPE','COMPANY_TYPE_DESC','COMPANY_SUB_TYPE','COMPANY_SUB_TYPE_DESC','FEIN','STATE_DOMICILE','COMM_BUS_DATE','GROUP_CODE','GROUP_NAME','GROUP_CODE_PRIOR_PERIOD','GROUP_NAME_PRIOR_PERIOD','COMPANY_STATUS','COMPANY_STATUS_DESC','COUNTRY_NAME']
+    elif year in [2015, 2016]:
+        df_co.columns=['COCODE','SHORT_COMPANY_NAME','FULL_COMPANY_NAME','SURVIVING_COCODE','BUSINESS_TYPE','BUSINESS_TYPE_DESC','BUSINESS_SUB_TYPE','BUSINESS_SUB_TYPE_DESC','FILING_TYPE','FILING_TYPE_DESC','COMPANY_TYPE','COMPANY_TYPE_DESC','COMPANY_SUB_TYPE','COMPANY_SUB_TYPE_DESC','FEIN','STATE_DOMICILE','COMM_BUS_DATE','GROUP_CODE','GROUP_NAME','GROUP_CODE_PRIOR_PERIOD','GROUP_NAME_PRIOR_PERIOD','COMPANY_STATUS','COMPANY_STATUS_DESC','COUNTRY_NAME','DOMESTIC_CRIN','CERTIFIED_REINSURER']
     df_co.index=df_co['COCODE']
     
     #Get reinsurance data
@@ -103,7 +109,7 @@ def create_public_ticker_graph(H):
     return N
     
     
-    
+ 
 #Construct graphs for 2012
 df_co, df, df_filtered = get_data(2012)
 node_tuples = get_nodes(df_filtered, df_co)
@@ -112,5 +118,4 @@ H = create_publicly_traded_subgraph(G)
 N = create_public_ticker_graph(H)
 nx.write_gexf(H, 'reins_graph2012_publicly_traded.gexf')
 nx.write_gexf(N, 'reins_graph2012_public_tickers.gexf')
-
 
