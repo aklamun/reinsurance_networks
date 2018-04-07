@@ -3,7 +3,8 @@
 Created on Wed Feb  7 15:17:06 2018
 
 Implements Eisenberg-Noe contagion clearing
-Refer to their paper for notation
+Refer to their paper for details:
+    Eisenberg & Noe, "Systemic Risk in Financial Systems"
 
 @author: aak228
 """
@@ -17,11 +18,12 @@ from scipy import optimize
 #Dense matrix solvers
 
 def calc_p_bar(L):
-    #sum rows of L
+    #sum rows of L = total liabilities for each node
     p_bar = np.sum(L,axis=1)
     return p_bar
 
 def calc_Pi(L):
+    #row proportional weighting of L
     p_bar = calc_p_bar(L)
     Pi = np.zeros((len(p_bar),len(p_bar)))
     for i in range(len(p_bar)):
@@ -30,9 +32,11 @@ def calc_Pi(L):
     return Pi
 
 def Phi(p, Pi, p_bar, e):
+    #total funds available for debt obligations
     return np.minimum( np.dot(np.transpose(Pi),p) + e, p_bar )
 
 def next_default_ind(p, Pi, p_bar, e):
+    #returns next default set D
     pp = Phi(p, Pi, p_bar, e)
     D = np.zeros(len(p_bar))
     for i in range(len(p_bar)):
@@ -41,9 +45,10 @@ def next_default_ind(p, Pi, p_bar, e):
     return D
 
 def FF(p, p_0,Pi,Lambda,e,p_bar,I):
-    return np.dot(Lambda,  np.dot(Pi, (np.dot(Lambda,p) + np.dot(I-Lambda,p_bar)) )  + e  ) + np.dot(I-Lambda,p_bar)
+    return np.dot(Lambda,  np.dot( np.transpose(Pi), (np.dot(Lambda,p) + np.dot(I-Lambda,p_bar)) )  + e  ) + np.dot(I-Lambda,p_bar)
 
 def next_p(p_0, D_0, Pi, e, p_bar, I):
+    #find the next iterate p
     Lambda = np.diag(D_0)
     
     #p_1 = f(p_0) solve fixed point
@@ -52,7 +57,8 @@ def next_p(p_0, D_0, Pi, e, p_bar, I):
     return p_1, D_1
 
 def clearing_p(L,e):
-    #This implements the iterative solver
+    #This implements the iterative solvert to find clearing payment p
+    #Returns clearing payment vector and default set
     L = L.toarray()
     p_bar = calc_p_bar(L)
     Pi = calc_Pi(L)

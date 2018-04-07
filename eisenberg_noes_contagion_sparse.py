@@ -3,7 +3,8 @@
 Created on Fri Apr  6 14:13:57 2018
 
 Implements sparse solvers for Eisenberg-Noe contagion clearing
-Refer to their paper for notation
+Refer to their paper for details:
+    Eisenberg & Noe, "Systemic Risk in Financial Systems"
 
 @author: aak228
 """
@@ -17,7 +18,7 @@ from scipy import sparse, optimize
 #Sparse matrix solvers
 
 def calc_p_bar(L):
-    #sum rows of L
+    #sum rows of L = total liabilities for each node
     p_bar = L.sum(axis=1)
     return np.array([p_bar[i,0] for i in range(len(p_bar))])
 
@@ -31,6 +32,7 @@ def calc_Pi(L):
     return Pi
 
 def Phi(p, Pi, p_bar, e):
+    #total funds available for debt obligations
     return np.minimum(Pi.transpose().tocsr()*p + e, p_bar)
 
 def next_default_ind(p, Pi, p_bar, e):
@@ -44,9 +46,10 @@ def next_default_ind(p, Pi, p_bar, e):
 
 def FF(p, p_0,Pi,Lambda,e,p_bar):
     Lam = Lambda.tocsr()
-    return Lam*(Pi.tocsr()*(Lam*p + (sparse.eye(len(p_bar))-Lam)*p_bar) + e) + (sparse.eye(len(p_bar))-Lam)*p_bar
+    return Lam*(Pi.transpose().tocsr()*(Lam*p + (sparse.eye(len(p_bar))-Lam)*p_bar) + e) + (sparse.eye(len(p_bar))-Lam)*p_bar
 
 def next_p(p_0, D_0, Pi, e, p_bar):
+    #find the next iterate p
     Lambda = sparse.diags(D_0)
     
     #p_1 = f(p_0) solve fixed point
@@ -55,7 +58,9 @@ def next_p(p_0, D_0, Pi, e, p_bar):
     return p_1, D_1
 
 def clearing_p(L,e):
-    #This implements the iterative solver
+    #This implements the iterative solvert to find clearing payment p
+    #Returns clearing payment vector and default set
+    L = sparse.dok_matrix(L)
     p_bar = calc_p_bar(L)
     Pi = calc_Pi(L)
     p_0 = p_bar[:]
@@ -84,6 +89,7 @@ encoded as     A_ub * x <= b_ub
 
 def clearing_p_LP(L,e):
     #This implements a LP solver
+    L = sparse.dok_matrix(L)
     p_bar = calc_p_bar(L)
     I = sparse.eye(len(p_bar))
     Pi = calc_Pi(L)
