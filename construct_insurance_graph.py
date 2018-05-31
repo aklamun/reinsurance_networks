@@ -2,7 +2,7 @@
 """
 Created on Thu Feb  1 16:11:26 2018
 
-This file constructs graphs of NAICS reinsurance contract data from Schedule F
+This file constructs graphs of NAIC reinsurance contract data from Schedule F
 Those data files are necessary to run the code
 
 @author: aak228
@@ -12,7 +12,8 @@ import pandas as pd
 import os
 import networkx as nx
 
-directory = "C:/Users/aak228/Box Sync/!-Research/2018/code/reinsurance_graph/"
+#fill in directory as appropropriate
+directory = "..."
 os.chdir(directory)
 
 def get_data(year):
