@@ -1,5 +1,5 @@
 # reinsurance_networks
-Code for paper on cascades in reinsurance networks
+Code for paper Cascading Losses in Reinsurance Networks. Paper available [here](https://arxiv.org/abs/1805.12222).
 
 The .py files implement functionality as follows:
 - construct_insurance_graph.py: constructing graphs on premiums ceded from NAIC Schedule F data
