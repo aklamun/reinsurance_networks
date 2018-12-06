@@ -8,6 +8,8 @@ This script constructs figures like the ones in the paper
 """
 
 import networkx as nx
+from scipy import sparse
+import matplotlib.pyplot as plt
 from simulate_contagion import *
 from perturb_parameters import *
 
@@ -81,4 +83,55 @@ Gexport = construct_G_for_export(fs_prop)
 nx.write_gexf(Gexport, 'reinsurance_graph/fs_prop_G_2012.gexf')
 
 
+###############################################################################
+'''Figures to compare time dependency of claims'''
 
+#generate one 250-year shock and split into two smaller shocks
+sh_1 = random_shock(fs_xl, typ=250)/2
+sh_2 = random_shock(fs_xl, typ=250)/2
+sh = sh_1 + sh_2
+
+
+'''simulation 1: all claims come in single period'''
+capital_vec = [fs_xl.capital[node] for node in fs_xl.G.nodes()]
+fs_xl.set_shock(sh)
+L, B, C = solve_push(fs_xl)
+p, D = eis_noe.clearing_p(L, capital_vec)
+rets1 = equity_change(L, capital_vec, sh, p)
+
+'''simulation 2: half claims come in first period, half claims come in second period'''
+capital_vec = [fs_xl.capital[node] for node in fs_xl.G.nodes()]
+#first period
+fs_xl.set_shock(sh_1)
+L_1, B_1, C_1 = solve_push(fs_xl)
+p_1, D_1 = eis_noe.clearing_p(L_1, capital_vec)
+capital_vec1 = np.multiply(equity_change(L_1, capital_vec, sh_1, p_1), np.array(capital_vec))
+capital_vec_pos = np.array([i if i>0 else 0 for i in capital_vec1])
+
+#second period
+fs_xl.set_shock(sh_2)
+L_2, B_2, C_2 = solve_push(fs_xl)
+p_2, D_2 = eis_noe.clearing_p(L_2, capital_vec_pos)
+
+#calculate total equity change over two periods
+L1 = L_2.tocsr()*np.ones(len(capital_vec1))
+alpha = np.array([p_2[i]/L1[i] if L1[i]>0 else 0 for i in range(len(p_2))])
+end_equity = capital_vec1 - p_2 + L_2.transpose().tocsr()*alpha - sh_2
+rets2 = np.divide(end_equity, capital_vec)
+
+#plot histogram of change in returns
+rets_compare = rets2-rets1
+mn = min(rets_compare)
+mx = max(rets_compare)
+h = Freedman_Diaconis_h(rets_compare, n=len(rets_compare))
+num_bins = int(np.ceil((mx-mn)/h))
+hist, bin_edges = np.histogram(rets_compare, bins=num_bins, range=(mn,mx), density=False)
+plt.hist(rets_compare, bins=num_bins, range=(mn,mx), density=False, log=True)
+plt.xlim(mn,mx)
+plt.title('Histogram Difference in Firm Returns', fontsize=14)
+plt.ylabel('Count (logscale)', fontsize=14)
+plt.xlabel('Return 2 Clearings - Return Single Clearing', fontsize=14)
+plt.tick_params(axis='both', which='major', labelsize=14)
+plt.tight_layout()
+plt.savefig('figures/hist_firm_equity_time_diff.eps')
+plt.show()
